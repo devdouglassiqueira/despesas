@@ -1,0 +1,19 @@
+version: '3'
+services:
+  postgres:
+    container_name: alternativa-dados-postgres
+    image: postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    environment:
+      POSTGRES_USER: dbdados
+      POSTGRES_PASSWORD: '#DBpass#@0250'
+      POSTGRES_DB: alternativa-dados
+    expose:
+      - 5432
+    ports:
+      - '127.0.0.1:5438:5432'
+      - '[::1]:5438:5432'

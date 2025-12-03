@@ -1,0 +1,828 @@
+type: collection.insomnia.rest/5.0
+name: alternativa dados
+meta:
+  id: wrk_b98e332eb9ee452a97a44e4584ce5e12
+  created: 1758035018727
+  modified: 1758035018727
+  description: ''
+collection:
+  - name: Users
+    meta:
+      id: fld_3486ee281f3042f9a12f8b93219324fa
+      created: 1731962806855
+      modified: 1731962806855
+      sortKey: -1722295357993
+      description: ''
+    children:
+      - url: '{{baseUrl}}/users'
+        name: Create
+        meta:
+          id: req_eea2facf81ef4dd0a2950cf957712dc0
+          created: 1731962806856
+          modified: 1758200000000
+          isPrivate: false
+          description: ''
+          sortKey: -1722295360739
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"name": "Arnaldo Batista",
+            	"username": "arnaldobatista2",
+            	"email": "arnald2o@admin.com",
+            	"password": "1qaz2wsx",
+            	"birthday": "23/09/1999",
+            	"status": "active",
+            	"roleId": 1
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/9.3.2
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: '{{baseUrl}}/users/2'
+        name: Update
+        meta:
+          id: req_04d596b2af4f4f84935834736518ac03
+          created: 1731962806857
+          modified: 1758200000001
+          isPrivate: false
+          description: ''
+          sortKey: -1721807330974.75
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"name": "aaaaaaa Santos",
+            	"username": "aaaaaaa",
+            	"email": "aaaaaaa@admin.com",
+            	"password": "1qaz2wsx",
+            	"birthday": "23/09/1999",
+            	"status": "active",
+            	"roleId": 1
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/9.3.2
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: '{{baseUrl}}/users'
+        name: List
+        meta:
+          id: req_6182d5b8006d43e383a2adb709fb067c
+          created: 1731962806857
+          modified: 1731964393048
+          isPrivate: false
+          description: ''
+          sortKey: -1722016486588
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/9.3.2
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: '{{baseUrl}}/users/1'
+        name: Show
+        meta:
+          id: req_7be48bf776994e7d9d0f0fa1f8e0c389
+          created: 1731962806857
+          modified: 1731962806857
+          isPrivate: false
+          description: ''
+          sortKey: -1721877049512.5
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/9.3.2
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: '{{baseUrl}}/users/8'
+        name: Delete
+        meta:
+          id: req_f15827624b9140d6964c2a35c2064de7
+          created: 1731962806858
+          modified: 1739807717906
+          isPrivate: false
+          description: ''
+          sortKey: -1721772471705.875
+        method: DELETE
+        headers:
+          - name: User-Agent
+            value: insomnia/9.3.2
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Session
+    meta:
+      id: fld_de9105019f084e77b73758b22e01656f
+      created: 1731962806858
+      modified: 1732032255694
+      sortKey: -1723151480771
+      description: ''
+    children:
+      - url: '{{baseUrl}}/auth'
+        name: Login
+        meta:
+          id: req_e426bd01b3fe427eb09c36975025fd81
+          created: 1731962806858
+          modified: 1758035098020
+          isPrivate: false
+          description: ''
+          sortKey: -1723155812325
+        method: POST
+        body:
+          mimeType: application/json
+          text: |
+            {
+            	"email": "admin@admin.com",
+            	"password": "1qaz2wsx"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/9.3.3
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Check Token
+    meta:
+      id: fld_afac7abaf36f46fdb8dda5e1638728af
+      created: 1732648162748
+      modified: 1757075193687
+      sortKey: -1722252409931.5
+      description: ''
+    children:
+      - url: '{{baseUrl}}/check-token'
+        name: List
+        meta:
+          id: req_14083e3a7d484deb8caa5cc7e0786464
+          created: 1732648162749
+          modified: 1732649685475
+          isPrivate: false
+          description: ''
+          sortKey: -1722016486588
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/9.3.2
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Permissoes
+    meta:
+      id: fld_2bc80cd3aaf54334bee5dbd186851078
+      created: 1739294033152
+      modified: 1753148723846
+      sortKey: -1614650353499.3843
+      description: ''
+    children:
+      - name: Roles
+        meta:
+          id: fld_dc894c1ecdcf4010819563924c646409
+          created: 1739294033154
+          modified: 1739294033154
+          sortKey: -1739036367521
+          description: ''
+        children:
+          - url: '{{baseUrl}}/roles'
+            name: List
+            meta:
+              id: req_deea09bcf0b34925a0d3a48f0fb8cb9f
+              created: 1739294033154
+              modified: 1739294033154
+              isPrivate: false
+              description: ''
+              sortKey: -1722016486588
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/roles'
+            name: Create
+            meta:
+              id: req_5c6a5691a800482b8bb2e503611ad224
+              created: 1739294033155
+              modified: 1739294033155
+              isPrivate: false
+              description: ''
+              sortKey: -1722295360739
+            method: POST
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "name": "admin2",
+                  "description": "admin do sistema"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/roles/1'
+            name: Update
+            meta:
+              id: req_cf92cc9a1acb4077805c4aa158075d50
+              created: 1739294033156
+              modified: 1739294033156
+              isPrivate: false
+              description: ''
+              sortKey: -1721807330974.75
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "name": "admin",
+                  "description": "admin do sistema"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/roles/3'
+            name: Delete
+            meta:
+              id: req_dfef307d47a54da9a8196840f7bb47dd
+              created: 1739294033156
+              modified: 1739294033156
+              isPrivate: false
+              description: ''
+              sortKey: -1721772471705.875
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/roles/1'
+            name: List by id
+            meta:
+              id: req_49dd8e3f484948d2b4c6d1432809b320
+              created: 1739294033157
+              modified: 1739294033157
+              isPrivate: false
+              description: ''
+              sortKey: -1722016133150.3438
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Permissions
+        meta:
+          id: fld_19e9e26dcb6147439c39d18ed00ea4a3
+          created: 1739294033157
+          modified: 1739294033157
+          sortKey: -1739036367421
+          description: ''
+        children:
+          - url: '{{baseUrl}}/permissions'
+            name: List
+            meta:
+              id: req_337fdb2b967148e28b18f4508da1406e
+              created: 1739294033157
+              modified: 1739294033157
+              isPrivate: false
+              description: ''
+              sortKey: -1722016486588
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/permissions'
+            name: Create
+            meta:
+              id: req_d643709c9d85413abfbca07f3cd96cfc
+              created: 1739294033158
+              modified: 1739294155192
+              isPrivate: false
+              description: ''
+              sortKey: -1722295360739
+            method: POST
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "name": "listar_usuarios",
+                  "group": "usuario"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/permissions/2'
+            name: Delete
+            meta:
+              id: req_e0f634352cc3490c98221154f7647070
+              created: 1739294033158
+              modified: 1739294033158
+              isPrivate: false
+              description: ''
+              sortKey: -1721772471705.875
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/permissions/2'
+            name: Update
+            meta:
+              id: req_050c71d8728b40df9a9ff2d1da484394
+              created: 1739294033159
+              modified: 1739294033159
+              isPrivate: false
+              description: ''
+              sortKey: -1721807330974.75
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "name": "deletar_relacao_role_permissao",
+                  "group": "role"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Role permissions
+        meta:
+          id: fld_8f893deb93be4e369aa0ea7e92b47aef
+          created: 1739294033159
+          modified: 1739294033159
+          sortKey: -1739036353781
+          description: ''
+        children:
+          - url: '{{baseUrl}}/role-permissions'
+            name: List
+            meta:
+              id: req_475308ebec8b45abb00dd732883fa622
+              created: 1739294033159
+              modified: 1739294033159
+              isPrivate: false
+              description: ''
+              sortKey: -1722016486588
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/role-permissions'
+            name: Create
+            meta:
+              id: req_198f6e56b3d14af595028fa66b1b921a
+              created: 1739294033160
+              modified: 1739294101372
+              isPrivate: false
+              description: ''
+              sortKey: -1722295360739
+            method: POST
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "roleId": 1,
+                  "permissionsId": 1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/role-permissions/1'
+            name: Update
+            meta:
+              id: req_467781f628b9481bbdb8f4e2076e5320
+              created: 1739294033160
+              modified: 1739294033160
+              isPrivate: false
+              description: ''
+              sortKey: -1721807330974.75
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "roleId": 1,
+                  "permissionsId": 1
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/role-permissions/assign/1'
+            name: Update varios
+            meta:
+              id: req_08f666b1b1cc4a19a73c405a03016f3b
+              created: 1739294033161
+              modified: 1758200000002
+              isPrivate: false
+              description: ''
+              sortKey: -1721789901340.3125
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "permissionsIds": [2, 3, 5]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/role-permissions/3'
+            name: Delete
+            meta:
+              id: req_54a39eb38ee5489eb0cd0f575d4a6ed4
+              created: 1739294033161
+              modified: 1739294033161
+              isPrivate: false
+              description: ''
+              sortKey: -1721772471705.875
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/role-permissions/assign'
+            name: Create varios
+            meta:
+              id: req_b2344b6971ea470eaf91e536d31adf5f
+              created: 1739294033161
+              modified: 1739294033161
+              isPrivate: false
+              description: ''
+              sortKey: -1722279147958.5
+            method: POST
+            body:
+              mimeType: application/json
+              text: |
+                {
+                  "roleId": 6,
+                  "permissionsIds": [45]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: '{{baseUrl}}/role-permissions/bulk'
+            name: Delete varios
+            meta:
+              id: req_f38ce6324fce438d85af80012ef01c8b
+              created: 1739294033162
+              modified: 1739294033162
+              isPrivate: false
+              description: ''
+              sortKey: -1721772471655.875
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "roleId": 6,
+                  "ids": [
+                    43,
+                    44,
+                    45
+                  ]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.2
+              - name: Authorization
+                value: Bearer {{ _.token }}
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+
+  - name: Me
+    meta:
+      id: fld_me_0001
+      created: 1758200000300
+      modified: 1758200000300
+      sortKey: -1722292580000
+      description: ''
+    children:
+      - url: '{{baseUrl}}/me'
+        name: Get Me
+        meta:
+          id: req_me_get_0001
+          created: 1758200000301
+          modified: 1758200000301
+          isPrivate: false
+          description: ''
+          sortKey: -1722016486588
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/9.3.2
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Logs
+    meta:
+      id: fld_logs_0001
+      created: 1758200000400
+      modified: 1758200000400
+      sortKey: -1722292570000
+      description: ''
+    children:
+      - url: '{{baseUrl}}/logs'
+        name: List
+        meta:
+          id: req_logs_list_0001
+          created: 1758200000401
+          modified: 1758200000401
+          isPrivate: false
+          description: ''
+          sortKey: -1722016486588
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/9.3.2
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_5d3837d1588848d78a6f722162da5f36
+    created: 1731962806854
+    modified: 1733030085852
+  cookies:
+    - id: d27a59ca-d711-45ec-8826-07489ac28e41
+      key: __Host-next-auth.csrf-token
+      value: b3676b9b0ec438dbe3a4bb4c8711e2292f831acaefa12308a6a42d3d8ee485eb%7C21f36bc6036fe47b9e0d605e4a06fca78f1a74b3af35417272b5baae47dc539a
+      domain: www.janjometro.com
+      path: /
+      secure: true
+      httpOnly: true
+      hostOnly: true
+    - id: fcd80a39-c2fe-4de4-90f8-617feeff8d9f
+      key: __Secure-next-auth.session-token
+      value: eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..Et7C8sm2Amtg221T.B4a6Nv2b9zhZiuc5GCyNCZHxNRHIsVvA6YkdCNbXxw2nf3r2bZNr6xQU_2mem0kobmCFD5yezXh-0jkpzSuVRgJzdwZ08Ks0PGq73LHLv6Ufd-WZLdhtjyBLlHs1daggNONY5hXz4rg0NzoKenzi1uhYQ4Nur08QWRssuImoo64GqLzwjpmEidUkJbvhHgbX3ucqT9cX.FuWhMBTKXcpI_fFMsEC9NQ
+      domain: www.janjometro.com
+      path: /
+      secure: true
+      httpOnly: true
+      hostOnly: true
+environments:
+  name: Base Environment
+  meta:
+    id: env_2c070c1cc35e4edaab7fe2538658d929
+    created: 1731962806852
+    modified: 1731962806852
+    isPrivate: false
+  subEnvironments:
+    - name: server
+      meta:
+        id: env_61d24ab89ac64fc388a52fd7ecaeb17e
+        created: 1731962806853
+        modified: 1758035141641
+        isPrivate: true
+        sortKey: 1721583212225.5
+      data:
+        baseUrl: https://dados.alternativamais.com.br/api
+        token: "{% response 'body', 'req_73d1215068f145349de14c3304bcabe4',
+          'b64::JC5hY2Nlc3NUb2tlbg==::46b', 'always', 60 %}"
+    - name: local
+      meta:
+        id: env_c649096a94ed4a9aa6a9af9aa6f37b32
+        created: 1731962806853
+        modified: 1758035086565
+        isPrivate: true
+        sortKey: 1721418297856
+      data:
+        baseUrl: http://localhost:5058/api
+        token: "{% response 'body', 'req_e426bd01b3fe427eb09c36975025fd81',
+          'b64::JC5hY2Nlc3NUb2tlbg==::46b', 'always', 60 %}"
