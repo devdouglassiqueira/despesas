@@ -27,6 +27,7 @@ import { ApiLoggingMiddleware } from './infra/middlewares/logging/api-logging.mi
 import { HttpExceptionLoggingFilter } from './infra/filters/http-exception.filter';
 import { DadosDiscordModule } from './modules/dados-discord/dados-discord.module';
 import { DespesasModule } from './modules/despesas/despesas.module';
+import { ControleDespesasModule } from './modules/controle-despesas/controle-despesas.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { DespesasModule } from './modules/despesas/despesas.module';
     LogsModule,
     DadosDiscordModule,
     DespesasModule,
+    ControleDespesasModule,
   ],
   controllers: [],
   providers: [
