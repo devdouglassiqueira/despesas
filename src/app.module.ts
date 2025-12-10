@@ -25,7 +25,6 @@ import { AdminSeederModule } from './modules/admin-seeder/admin-seeder.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { ApiLoggingMiddleware } from './infra/middlewares/logging/api-logging.middleware';
 import { HttpExceptionLoggingFilter } from './infra/filters/http-exception.filter';
-import { DadosDiscordModule } from './modules/dados-discord/dados-discord.module';
 import { DespesasModule } from './modules/despesas/despesas.module';
 import { ControleDespesasModule } from './modules/controle-despesas/controle-despesas.module';
 
@@ -53,7 +52,6 @@ import { ControleDespesasModule } from './modules/controle-despesas/controle-des
     RolePermissionsModule,
     AdminSeederModule,
     LogsModule,
-    DadosDiscordModule,
     DespesasModule,
     ControleDespesasModule,
   ],

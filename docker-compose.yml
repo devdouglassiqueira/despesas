@@ -1,7 +1,6 @@
-version: '3'
 services:
   postgres:
-    container_name: alternativa-dados-postgres
+    container_name: despesas-postgres
     image: postgres
     deploy:
       resources:
@@ -9,11 +8,11 @@ services:
           cpus: '0.5'
           memory: 256M
     environment:
-      POSTGRES_USER: dbdados
+      POSTGRES_USER: dbdespesas
       POSTGRES_PASSWORD: '#DBpass#@0250'
-      POSTGRES_DB: alternativa-dados
+      POSTGRES_DB: alternativa-despesas
     expose:
       - 5432
     ports:
-      - '127.0.0.1:5438:5432'
-      - '[::1]:5438:5432'
+      - '127.0.0.1:5440:5432'
+      - '[::1]:5440:5432'
