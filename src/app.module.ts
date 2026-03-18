@@ -25,8 +25,15 @@ import { AdminSeederModule } from './modules/admin-seeder/admin-seeder.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { ApiLoggingMiddleware } from './infra/middlewares/logging/api-logging.middleware';
 import { HttpExceptionLoggingFilter } from './infra/filters/http-exception.filter';
-import { DespesasModule } from './modules/despesas/despesas.module';
+import { ImportacaoModule } from './modules/importacao/importacao.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
+// import { DespesasModule } from './modules/despesas/despesas.module';
+// import { CategoriasModule } from './modules/categorias/categorias.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { AccountsModule } from './modules/accounts/accounts.module';
 import { ControleDespesasModule } from './modules/controle-despesas/controle-despesas.module';
+import { CategoriasModule } from './modules/categorias/categorias.module';
+import { ContatosModule } from './modules/contatos/contatos.module';
 
 @Module({
   imports: [
@@ -52,8 +59,15 @@ import { ControleDespesasModule } from './modules/controle-despesas/controle-des
     RolePermissionsModule,
     AdminSeederModule,
     LogsModule,
-    DespesasModule,
+    ImportacaoModule,
+    TransactionsModule,
+    CategoriesModule,
+    AccountsModule,
     ControleDespesasModule,
+    CategoriasModule,
+    ContatosModule,
+    // DespesasModule,
+    // CategoriasModule,
   ],
   controllers: [],
   providers: [

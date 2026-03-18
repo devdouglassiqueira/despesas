@@ -48,6 +48,27 @@ export class ControleDespesas {
   @Column({ type: 'varchar', length: 20 })
   tipo: string;
 
+  @ApiProperty({
+    example: 'João Silva',
+    description: 'Contato relacionado à despesa',
+  })
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  contato: string;
+
+  @ApiProperty({
+    example: 'Alimentação',
+    description: 'Categoria da despesa',
+  })
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  categoria: string;
+
+  @ApiProperty({
+    example: '2024-01-01',
+    description: 'Data da transação',
+  })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  data: Date;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp',

@@ -6,6 +6,7 @@ import {
   Put,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -21,7 +22,7 @@ import { PermissionsGroup } from 'src/common/interfaces/decorators/permissions-g
 export class ControleDespesasController {
   constructor(
     private readonly controleDespesasService: ControleDespesasService,
-  ) {}
+  ) { }
 
   @Post()
   @Permissions('criar_controle_despesas')
@@ -31,6 +32,15 @@ export class ControleDespesasController {
     return await this.controleDespesasService.create(
       createControleDespesasRequest,
     );
+  }
+
+  @Get('relatorio')
+  @Permissions('listar_controle_despesas')
+  async getReport(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return await this.controleDespesasService.getReport(startDate, endDate);
   }
 
   @Get()
@@ -51,16 +61,10 @@ export class ControleDespesasController {
     @Param('id') id: string,
     @Body() updateControleDespesasRequest: UpdateControleDespesasDto,
   ) {
-    const controleDespesas = await this.controleDespesasService.update(
+    return await this.controleDespesasService.update(
       +id,
       updateControleDespesasRequest,
     );
-
-    return {
-      id: controleDespesas.id,
-      valor: controleDespesas.valor,
-      descricao: controleDespesas.descricao,
-    };
   }
 
   @Delete(':id')

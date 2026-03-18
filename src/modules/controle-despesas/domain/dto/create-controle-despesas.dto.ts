@@ -30,4 +30,24 @@ export class CreateControleDespesasDto {
   @IsString()
   @IsNotEmpty()
   tipo: string;
+
+  @ApiProperty({
+    default: 'João Silva',
+  })
+  @IsString()
+  @IsOptional()
+  contato: string;
+
+  @ApiProperty({
+    default: 'Alimentação',
+  })
+  @IsString()
+  @IsOptional()
+  categoria: string;
+
+  @ApiProperty({
+    default: '2024-01-01',
+  })
+  @IsOptional()
+  data: Date;
 }

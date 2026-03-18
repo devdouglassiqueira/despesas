@@ -30,4 +30,18 @@ export class UpdateControleDespesasDto {
   @IsString()
   @IsOptional()
   tipo?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  contato?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  categoria?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  data?: Date | string;
 }

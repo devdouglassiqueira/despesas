@@ -12,10 +12,11 @@ export class ControleDespesasService {
     @InjectRepository(ControleDespesas)
     private readonly despesasRepository: Repository<ControleDespesas>,
     private readonly entityManager: EntityManager,
-  ) {}
+  ) { }
 
   async create(createDespesasDto: CreateControleDespesasDto) {
-    const { valor, descricao, tipo } = createDespesasDto;
+    const { valor, descricao, tipo, contato, categoria, data } =
+      createDespesasDto;
 
     // Garantir número
     const valorNumber = Number(valor);
@@ -50,10 +51,75 @@ export class ControleDespesasService {
       valor: valorNumber.toFixed(2),
       descricao,
       tipo,
+      contato,
+      categoria,
+      data: data || new Date(),
     });
 
     return await this.despesasRepository.save(controleDespesas);
   }
+
+  async getReport(startDate: string, endDate: string) {
+    const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+    const start = new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0);
+
+    const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+    const end = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
+
+    // 1. Calcular Saldo Anterior (Soma de tudo antes do startDate)
+    const { totalEntradasAnterior } = await this.despesasRepository
+      .createQueryBuilder('despesas')
+      .select('SUM(CAST(despesas.valor AS NUMERIC))', 'totalEntradasAnterior')
+      .where('despesas.tipo = :tipo', { tipo: 'entrada' })
+      .andWhere('despesas.data < :start', { start })
+      .andWhere('despesas.deletedAt IS NULL')
+      .getRawOne();
+
+    const { totalSaidasAnterior } = await this.despesasRepository
+      .createQueryBuilder('despesas')
+      .select('SUM(CAST(despesas.valor AS NUMERIC))', 'totalSaidasAnterior')
+      .where('despesas.tipo IN (:...tipos)', { tipos: ['saida', 'saída'] })
+      .andWhere('despesas.data < :start', { start })
+      .andWhere('despesas.deletedAt IS NULL')
+      .getRawOne();
+
+    const saldoAnterior =
+      (Number(totalEntradasAnterior) || 0) - (Number(totalSaidasAnterior) || 0);
+
+    // 2. Buscar Transações no Período
+    const transacoes = await this.despesasRepository
+      .createQueryBuilder('despesas')
+      .where('despesas.data >= :start', { start })
+      .andWhere('despesas.data <= :end', { end })
+      .andWhere('despesas.deletedAt IS NULL')
+      .orderBy('despesas.data', 'ASC')
+      .addOrderBy('despesas.createdAt', 'ASC')
+      .getMany();
+
+    // 3. Calcular Totais do Período
+    let totalEntradasPeriodo = 0;
+    let totalSaidasPeriodo = 0;
+
+    transacoes.forEach((t) => {
+      if (t.tipo === 'entrada') {
+        totalEntradasPeriodo += Number(t.valor);
+      } else {
+        totalSaidasPeriodo += Number(t.valor);
+      }
+    });
+
+    const saldoFinal =
+      saldoAnterior + totalEntradasPeriodo - totalSaidasPeriodo;
+
+    return {
+      saldoAnterior,
+      totalEntradas: totalEntradasPeriodo,
+      totalSaidas: totalSaidasPeriodo,
+      saldoFinal,
+      transacoes,
+    };
+  }
+
   async findAll() {
     const despesas = await this.despesasRepository.find({
       select: {
@@ -64,19 +130,19 @@ export class ControleDespesasService {
         tipo: true,
         createdAt: true,
         deletedAt: true,
+        contato: true,
+        categoria: true,
+        data: true,
       },
       where: {
         deletedAt: IsNull(),
       },
       order: {
-        createdAt: 'ASC', // importante pra ver a evolução do saldo
+        data: 'DESC',
       },
     });
 
-    if (!despesas.length) {
-      throw new HttpException('Nenhuma despesa encontrada', 404);
-    }
-
+    // Retorna array vazio em vez de 404
     return despesas;
   }
 
@@ -85,7 +151,7 @@ export class ControleDespesasService {
       throw new HttpException('Id da despesa necessário!', 400);
     }
 
-    const despesas = await this.despesasRepository.findOne({
+    const despesa = await this.despesasRepository.findOne({
       select: {
         id: true,
         saldo: true,
@@ -94,17 +160,21 @@ export class ControleDespesasService {
         tipo: true,
         createdAt: true,
         deletedAt: true,
+        contato: true,
+        categoria: true,
+        data: true,
       },
       where: {
+        id, // <-- Corrigido: Agora usa o ID passado
         deletedAt: IsNull(),
       },
     });
 
-    if (!despesas) {
+    if (!despesa) {
       throw new HttpException('Nenhuma despesa encontrada', 404);
     }
 
-    return despesas;
+    return despesa;
   }
 
   async update(
@@ -115,16 +185,14 @@ export class ControleDespesasService {
       throw new HttpException('Id da despesa necessário!', 400);
     }
 
-    const despesas = await this.entityManager.findOneBy(ControleDespesas, {
-      id,
-    });
-    if (!despesas) {
-      throw new HttpException('Nenhum operador encontrado', 404);
+    const despesa = await this.despesasRepository.findOneBy({ id });
+    if (!despesa) {
+      throw new HttpException('Transação não encontrada', 404);
     }
 
-    Object.assign(despesas, updateControleDespesasDto);
+    Object.assign(despesa, updateControleDespesasDto);
 
-    return await this.entityManager.save(despesas);
+    return await this.despesasRepository.save(despesa);
   }
 
   async delete(id: number) {
