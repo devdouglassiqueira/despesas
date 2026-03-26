@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import { Transaction } from '../domain/transaction.entity';
 import { CreateTransactionDto, UpdateTransactionDto } from '../domain/dto/create-transaction.dto';
 import { Attachment } from '../domain/attachment.entity';
@@ -104,11 +104,33 @@ export class TransactionsService {
             qb.andWhere('transaction.type = :type', { type: query.type });
         }
 
-        if (query.search) {
-            qb.andWhere('transaction.description ILIKE :search', { search: `%${query.search}%` });
+        if (query.tag) {
+            qb.andWhere('transaction.tags ILIKE :tag', { tag: `%${query.tag}%` });
         }
 
-        return qb.getMany();
+        if (query.search) {
+            qb.andWhere('(transaction.description ILIKE :search OR transaction.tags ILIKE :search)', { search: `%${query.search}%` });
+        }
+
+        const page = Number(query.page) || 1;
+        const limit = Number(query.limit) || 15;
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await qb
+            .skip(skip)
+            .take(limit)
+            .getManyAndCount();
+
+        return {
+            data,
+            meta: {
+                totalItems: total,
+                itemCount: data.length,
+                itemsPerPage: limit,
+                totalPages: Math.ceil(total / limit),
+                currentPage: page,
+            }
+        };
     }
 
     async findOne(id: number) {
@@ -143,12 +165,13 @@ export class TransactionsService {
         const transaction = await this.findOne(id);
         return this.transactionRepository.remove(transaction);
     }
-
     async getDashboardSummary(month?: number, year?: number) {
         const currentYear = year || new Date().getFullYear();
         const currentMonth = month || new Date().getMonth() + 1;
 
         const qbNormal = this.transactionRepository.createQueryBuilder('transaction')
+            .leftJoinAndSelect('transaction.category', 'category')
+            .leftJoinAndSelect('transaction.account', 'account')
             .where('EXTRACT(MONTH FROM transaction.date) = :month', { month: currentMonth })
             .andWhere('EXTRACT(YEAR FROM transaction.date) = :year', { year: currentYear });
 
@@ -164,63 +187,96 @@ export class TransactionsService {
 
         const balance = totalIncome - totalExpense;
 
-        // Group by category for charts
-        const categoryMap = new Map<string, number>();
-        transactions.filter(t => t.type === 'expense').forEach(t => { // Chart usually expenses
-            // If category is loaded (it's not joined above, need to join or load separately, or use categoryId)
-            // Check if we need category name. 
-            // Let's reload with relations or just use categoryId for now?
-            // Better to just group by categoryId and name if available.
-            // Actually, qbNormal.getMany() above doesn't load relations unless we tell it.
+        // Group by category
+        const categoryMap = new Map<string, { category: string, color: string, total: number, transactions: any[] }>();
+        // Group by tag
+        const tagMap = new Map<string, { tag: string, total: number, transactions: any[] }>();
+        // Group by account
+        const accountMap = new Map<string, { name: string, type: string, color: string, income: number, expense: number }>();
+
+        transactions.forEach(t => {
+            // Category Summary
+            if (t.type === 'expense') {
+                const catName = t.category?.name || 'Outros';
+                const catColor = t.category?.color || '#9e9e9e';
+                const catData = categoryMap.get(catName) || { category: catName, color: catColor, total: 0, transactions: [] };
+                catData.total += Number(t.amount);
+                catData.transactions.push(t);
+                categoryMap.set(catName, catData);
+
+                // Tag Summary
+                if (t.tags) {
+                    const tags = t.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+                    tags.forEach(tag => {
+                        const tagData = tagMap.get(tag) || { tag, total: 0, transactions: [] };
+                        tagData.total += Number(t.amount);
+                        tagData.transactions.push(t);
+                        tagMap.set(tag, tagData);
+                    });
+                }
+            }
+
+            // Account Summary
+            const accName = t.account?.name || 'Sem conta';
+            const accData = accountMap.get(accName) || { 
+                name: accName, 
+                type: t.account?.type || 'other', 
+                color: t.account?.color || '#9e9e9e', 
+                income: 0, 
+                expense: 0 
+            };
+            if (t.type === 'income') accData.income += Number(t.amount);
+            else accData.expense += Number(t.amount);
+            accountMap.set(accName, accData);
         });
 
-        // Let's redo the query to get category breakdown easier
-        const expensesByCategory = await this.transactionRepository.createQueryBuilder('t')
-            .select('c.name', 'category')
-            .addSelect('c.color', 'color')
-            .addSelect('SUM(t.amount)', 'total')
-            .leftJoin('t.category', 'c')
-            .where('t.type = :type', { type: 'expense' })
-            .andWhere('EXTRACT(MONTH FROM t.date) = :month', { month: currentMonth })
-            .andWhere('EXTRACT(YEAR FROM t.date) = :year', { year: currentYear })
-            .groupBy('c.name')
-            .addGroupBy('c.color')
+        const expensesByCategory = Array.from(categoryMap.values())
+            .sort((a, b) => b.total - a.total);
+
+        const expensesByTag = Array.from(tagMap.values())
+            .sort((a, b) => b.total - a.total);
+
+        const totalsByAccount = Array.from(accountMap.values())
+            .map(acc => ({ ...acc, balance: acc.income - acc.expense }));
+
+        // Historical data
+        const sixMonthsAgo = new Date(currentYear, currentMonth - 6, 1);
+        const history = await this.transactionRepository.createQueryBuilder('t')
+            .select("EXTRACT(MONTH FROM t.date)", "month")
+            .addSelect("EXTRACT(YEAR FROM t.date)", "year")
+            .addSelect("t.type", "type")
+            .addSelect("SUM(t.amount)", "total")
+            .where('t.date >= :sixMonthsAgo', { sixMonthsAgo })
+            .groupBy("year")
+            .addGroupBy("month")
+            .addGroupBy("type")
+            .orderBy("year", "ASC")
+            .addOrderBy("month", "ASC")
             .getRawMany();
 
-        // Totals by account (payment method)
-        const totalsByAccount = await this.transactionRepository.createQueryBuilder('t')
-            .select('a.name', 'account')
-            .addSelect('a.type', 'accountType')
-            .addSelect('a.color', 'color')
-            .addSelect('t.type', 'transactionType')
-            .addSelect('SUM(t.amount)', 'total')
-            .leftJoin('t.account', 'a')
-            .andWhere('EXTRACT(MONTH FROM t.date) = :month', { month: currentMonth })
-            .andWhere('EXTRACT(YEAR FROM t.date) = :year', { year: currentYear })
-            .groupBy('a.name')
-            .addGroupBy('a.type')
-            .addGroupBy('a.color')
-            .addGroupBy('t.type')
-            .getRawMany();
+        const historyProcessed: any[] = [];
+        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(currentYear, currentMonth - 1 - i, 1);
+            const m = d.getMonth() + 1;
+            const y = d.getFullYear();
+            historyProcessed.push({
+                month: m,
+                year: y,
+                label: `${monthNames[m-1]}/${y.toString().slice(-2)}`,
+                income: 0,
+                expense: 0
+            });
+        }
 
-        // Process to get income and expense per account
-        const accountSummary = new Map<string, { name: string, type: string, color: string, income: number, expense: number }>();
-        totalsByAccount.forEach(item => {
-            const key = item.account || 'Sem conta';
-            if (!accountSummary.has(key)) {
-                accountSummary.set(key, {
-                    name: key,
-                    type: item.accountType || 'other',
-                    color: item.color || '#9e9e9e',
-                    income: 0,
-                    expense: 0
-                });
-            }
-            const acc = accountSummary.get(key)!;
-            if (item.transactionType === 'income') {
-                acc.income += Number(item.total);
-            } else {
-                acc.expense += Number(item.total);
+        history.forEach(item => {
+            const m = Number(item.month);
+            const y = Number(item.year);
+            const entry = historyProcessed.find(h => h.month === m && h.year === y);
+            if (entry) {
+                if (item.type === 'income') entry.income = Number(item.total);
+                else entry.expense = Number(item.total);
             }
         });
 
@@ -231,15 +287,10 @@ export class TransactionsService {
                 expense: totalExpense,
                 balance: balance
             },
-            expensesByCategory: expensesByCategory.map(item => ({
-                category: item.category || 'Outros',
-                color: item.color || '#9e9e9e',
-                total: Number(item.total)
-            })),
-            totalsByAccount: Array.from(accountSummary.values()).map(acc => ({
-                ...acc,
-                balance: acc.income - acc.expense
-            }))
+            history: historyProcessed,
+            expensesByCategory,
+            expensesByTag,
+            totalsByAccount
         };
     }
 
@@ -294,6 +345,25 @@ export class TransactionsService {
         });
 
         return this.transactionRepository.save(transactionsToSave);
+    }
+
+    async findUniqueTags() {
+        const transactions = await this.transactionRepository.find({
+            select: ['tags'],
+            where: { tags: Not(IsNull()) }
+        });
+
+        const tagsSet = new Set<string>();
+        transactions.forEach(t => {
+            if (t.tags) {
+                t.tags.split(',').forEach(tag => {
+                    const trimmed = tag.trim();
+                    if (trimmed) tagsSet.add(trimmed);
+                });
+            }
+        });
+
+        return Array.from(tagsSet).sort();
     }
 }
 

@@ -17,7 +17,7 @@ export class AuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly userService: UserService,
     private readonly logsService: LogsService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -40,13 +40,13 @@ export class AuthGuard implements CanActivate {
       const authHeader: string = request.headers.authorization;
 
       if (!authHeader) {
-        return false;
+        throw new ForbiddenException('Acesso negado: Header de Authorization ausente');
       }
 
       const [, accessToken] = authHeader.split(' ');
 
       if (!accessToken || accessToken === 'undefined' || accessToken === null) {
-        return false;
+        throw new ForbiddenException('Acesso negado: Token ausente');
       }
 
       const decoded = await this.jwtService.verifyAsync(accessToken);
@@ -64,7 +64,7 @@ export class AuthGuard implements CanActivate {
 
       // Buscar usuário com permissões atuais no banco para autorização dinâmica
       const dbUser = await this.userService.findWithPermissionsById(sub);
-      if (!dbUser || !dbUser.role || !dbUser.role.permissions) {
+      if (!dbUser || !dbUser.role) {
         throw new ForbiddenException('Access denied');
       }
 
@@ -94,7 +94,7 @@ export class AuthGuard implements CanActivate {
               method: request?.method,
             },
           });
-        } catch {}
+        } catch { }
         throw new ForbiddenException('User is inactive');
       }
 
@@ -105,8 +105,17 @@ export class AuthGuard implements CanActivate {
         roleId: dbUser.role.id,
       };
 
+      // Admin role bypass
+      if (dbUser.role.name === 'admin') {
+        return true;
+      }
+
       if (!requiredPermissions) {
         return true;
+      }
+
+      if (!dbUser.role.permissions) {
+        throw new ForbiddenException('Access denied!');
       }
 
       const userPermissions = dbUser.role.permissions.map((p) => p.name);

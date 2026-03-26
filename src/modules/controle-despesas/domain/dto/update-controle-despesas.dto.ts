@@ -41,6 +41,14 @@ export class UpdateControleDespesasDto {
   @IsOptional()
   categoria?: string;
 
+  @ApiProperty({
+    example: 'Nao é minha, especificar',
+    description: 'Tags da despesa',
+  })
+  @IsString()
+  @IsOptional()
+  tags?: string;
+
   @ApiProperty()
   @IsOptional()
   data?: Date | string;

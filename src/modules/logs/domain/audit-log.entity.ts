@@ -47,7 +47,7 @@ export class AuditLog {
   @Column({ name: 'request_id', type: 'varchar', length: 64, nullable: true })
   requestId?: string;
 
-  @ApiProperty({ type: 'object' })
+  @ApiProperty({ type: 'object', additionalProperties: true })
   @Column({ type: 'jsonb', nullable: true })
   context?: any;
 

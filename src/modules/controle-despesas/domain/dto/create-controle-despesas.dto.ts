@@ -46,6 +46,14 @@ export class CreateControleDespesasDto {
   categoria: string;
 
   @ApiProperty({
+    example: 'Nao é minha, especificar',
+    description: 'Tags da despesa',
+  })
+  @IsString()
+  @IsOptional()
+  tags: string;
+
+  @ApiProperty({
     default: '2024-01-01',
   })
   @IsOptional()

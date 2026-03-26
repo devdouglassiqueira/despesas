@@ -55,15 +55,15 @@ export class ApiLog {
   @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent?: string;
 
-  @ApiProperty({ type: 'object', example: { id: '1' } })
+  @ApiProperty({ type: 'object', additionalProperties: true, example: { id: '1' } })
   @Column({ type: 'jsonb', nullable: true })
   params?: any;
 
-  @ApiProperty({ type: 'object', example: { page: 1 } })
+  @ApiProperty({ type: 'object', additionalProperties: true, example: { page: 1 } })
   @Column({ type: 'jsonb', nullable: true })
   query?: any;
 
-  @ApiProperty({ type: 'object', example: { name: 'John' } })
+  @ApiProperty({ type: 'object', additionalProperties: true, example: { name: 'John' } })
   @Column({ type: 'jsonb', nullable: true })
   body?: any;
 

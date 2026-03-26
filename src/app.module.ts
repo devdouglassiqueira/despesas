@@ -34,6 +34,8 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { ControleDespesasModule } from './modules/controle-despesas/controle-despesas.module';
 import { CategoriasModule } from './modules/categorias/categorias.module';
 import { ContatosModule } from './modules/contatos/contatos.module';
+import { DiscordModule } from './modules/discord/discord.module';
+import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -66,6 +68,8 @@ import { ContatosModule } from './modules/contatos/contatos.module';
     ControleDespesasModule,
     CategoriasModule,
     ContatosModule,
+    DiscordModule,
+    WhatsappModule,
     // DespesasModule,
     // CategoriasModule,
   ],

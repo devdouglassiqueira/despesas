@@ -52,6 +52,11 @@ export class CreateTransactionDto {
     @IsOptional()
     notes?: string;
 
+    @ApiProperty({ description: 'Tags para busca e filtros', example: 'Nao é minha, especificar' })
+    @IsString()
+    @IsOptional()
+    tags?: string;
+
     @ApiProperty({ description: 'Anexos (URLs)', example: ['https://example.com/file.png'] })
     @IsOptional()
     attachmentUrls?: string[];

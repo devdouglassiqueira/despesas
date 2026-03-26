@@ -49,6 +49,12 @@ export class ControleDespesasController {
     return await this.controleDespesasService.findAll();
   }
 
+  @Get('tags')
+  @Permissions('listar_controle_despesas')
+  async findTags() {
+    return await this.controleDespesasService.findUniqueTags();
+  }
+
   @Get(':id')
   @Permissions('listar_controle_despesas_por_id')
   async findOne(@Param('id') id: string) {

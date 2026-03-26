@@ -3,12 +3,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { TransactionsService } from '../services/transactions.service';
 import { CreateTransactionDto, UpdateTransactionDto } from '../domain/dto/create-transaction.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Public } from '../../../common/interfaces/decorators/public.decorator';
 
 @ApiTags('transactions')
 @Controller('transactions')
 export class TransactionsController {
     constructor(private readonly transactionsService: TransactionsService) { }
 
+    @Public()
     @Post()
     create(@Body() createTransactionDto: CreateTransactionDto) {
         return this.transactionsService.create(createTransactionDto);
@@ -23,6 +25,11 @@ export class TransactionsController {
     @Get()
     findAll(@Query() query: any) {
         return this.transactionsService.findAll(query);
+    }
+
+    @Get('tags')
+    findTags() {
+        return this.transactionsService.findUniqueTags();
     }
 
     @Get('dashboard')

@@ -1,6 +1,6 @@
 import { Injectable, HttpException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository, IsNull } from 'typeorm';
+import { EntityManager, Repository, IsNull, Not } from 'typeorm';
 
 import { CreateControleDespesasDto } from '../domain/dto/create-controle-despesas.dto';
 import { UpdateControleDespesasDto } from '../domain/dto/update-controle-despesas.dto';
@@ -210,5 +210,24 @@ export class ControleDespesasService {
     Object.assign(despesas, { deletedAt: new Date() });
 
     return await this.entityManager.save(despesas);
+  }
+
+  async findUniqueTags() {
+    const despesas = await this.despesasRepository.find({
+      select: ['tags'],
+      where: { tags: Not(IsNull()), deletedAt: IsNull() },
+    });
+
+    const tagsSet = new Set<string>();
+    despesas.forEach((d) => {
+      if (d.tags) {
+        d.tags.split(',').forEach((tag) => {
+          const trimmed = tag.trim();
+          if (trimmed) tagsSet.add(trimmed);
+        });
+      }
+    });
+
+    return Array.from(tagsSet).sort();
   }
 }

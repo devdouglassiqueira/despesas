@@ -66,6 +66,10 @@ export class Transaction {
     @Column({ type: 'text', nullable: true })
     notes: string;
 
+    @ApiProperty({ example: 'Nao é minha, especificar', description: 'Tags para busca e filtros' })
+    @Column({ length: 255, nullable: true })
+    tags: string;
+
     @OneToMany(() => Attachment, (attachment) => attachment.transaction)
     attachments: Attachment[];
 

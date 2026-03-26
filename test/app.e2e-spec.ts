@@ -12,13 +12,14 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api');
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/api/check-token (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api/check-token')
       .expect(200)
-      .expect('Hello World!');
+      .expect({ message: 'Rota de verificação acessada com sucesso!' });
   });
 });

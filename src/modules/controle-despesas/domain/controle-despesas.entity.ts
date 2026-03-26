@@ -63,6 +63,13 @@ export class ControleDespesas {
   categoria: string;
 
   @ApiProperty({
+    example: 'Nao é minha, especificar',
+    description: 'Tags da despesa',
+  })
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  tags: string;
+
+  @ApiProperty({
     example: '2024-01-01',
     description: 'Data da transação',
   })
