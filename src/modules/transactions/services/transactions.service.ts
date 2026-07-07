@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
+import { Repository, Not, IsNull, SelectQueryBuilder } from 'typeorm';
 import { Transaction } from '../domain/transaction.entity';
 import { CreateTransactionDto, UpdateTransactionDto } from '../domain/dto/create-transaction.dto';
 import { Attachment } from '../domain/attachment.entity';
@@ -81,6 +81,31 @@ export class TransactionsService {
             );
             await this.attachmentRepository.save(attachments);
             transaction.attachments = attachments;
+        }
+    }
+
+    private applyPeriodFilter(
+        qb: SelectQueryBuilder<Transaction>,
+        alias: string,
+        month?: number,
+        year?: number,
+        startDate?: string,
+        endDate?: string,
+    ) {
+        if (startDate) {
+            qb.andWhere(`${alias}.date >= :startDate`, { startDate: `${startDate}T00:00:00.000Z` });
+        }
+
+        if (endDate) {
+            qb.andWhere(`${alias}.date <= :endDate`, { endDate: `${endDate}T23:59:59.999Z` });
+        }
+
+        if (!startDate && !endDate) {
+            const currentYear = Number(year) || new Date().getFullYear();
+            const currentMonth = Number(month) || new Date().getMonth() + 1;
+
+            qb.andWhere(`EXTRACT(MONTH FROM ${alias}.date) = :month`, { month: currentMonth });
+            qb.andWhere(`EXTRACT(YEAR FROM ${alias}.date) = :year`, { year: currentYear });
         }
     }
 
@@ -165,15 +190,16 @@ export class TransactionsService {
         const transaction = await this.findOne(id);
         return this.transactionRepository.remove(transaction);
     }
-    async getDashboardSummary(month?: number, year?: number) {
-        const currentYear = year || new Date().getFullYear();
-        const currentMonth = month || new Date().getMonth() + 1;
+    async getDashboardSummary(month?: number, year?: number, startDate?: string, endDate?: string) {
+        const currentYear = Number(year) || new Date().getFullYear();
+        const currentMonth = Number(month) || new Date().getMonth() + 1;
 
         const qbNormal = this.transactionRepository.createQueryBuilder('transaction')
             .leftJoinAndSelect('transaction.category', 'category')
             .leftJoinAndSelect('transaction.account', 'account')
-            .where('EXTRACT(MONTH FROM transaction.date) = :month', { month: currentMonth })
-            .andWhere('EXTRACT(YEAR FROM transaction.date) = :year', { year: currentYear });
+            .where('1 = 1');
+
+        this.applyPeriodFilter(qbNormal, 'transaction', currentMonth, currentYear, startDate, endDate);
 
         const transactions = await qbNormal.getMany();
 
@@ -281,7 +307,9 @@ export class TransactionsService {
         });
 
         return {
-            period: { month: currentMonth, year: currentYear },
+            period: startDate || endDate
+                ? { startDate, endDate }
+                : { month: currentMonth, year: currentYear },
             summary: {
                 income: totalIncome,
                 expense: totalExpense,
@@ -292,6 +320,33 @@ export class TransactionsService {
             expensesByTag,
             totalsByAccount
         };
+    }
+
+    async getTagSummary(month?: number, year?: number, startDate?: string, endDate?: string) {
+        const qb = this.transactionRepository.createQueryBuilder('transaction')
+            .leftJoinAndSelect('transaction.account', 'account')
+            .where('transaction.type = :type', { type: 'expense' })
+            .orderBy('transaction.date', 'DESC');
+
+        this.applyPeriodFilter(qb, 'transaction', month, year, startDate, endDate);
+
+        const transactions = await qb.getMany();
+        const tagMap = new Map<string, { tag: string, total: number, transactions: Transaction[] }>();
+
+        transactions.forEach((transaction) => {
+            if (!transaction.tags) return;
+
+            const tags = transaction.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+
+            tags.forEach((tag) => {
+                const tagData = tagMap.get(tag) || { tag, total: 0, transactions: [] };
+                tagData.total += Number(transaction.amount);
+                tagData.transactions.push(transaction);
+                tagMap.set(tag, tagData);
+            });
+        });
+
+        return Array.from(tagMap.values()).sort((a, b) => b.total - a.total);
     }
 
     async importTransactions(file: Express.Multer.File, accountId?: number) {
@@ -366,4 +421,3 @@ export class TransactionsService {
         return Array.from(tagsSet).sort();
     }
 }
-

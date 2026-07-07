@@ -93,8 +93,20 @@ export class ImportacaoService {
                 const tipo = valor < 0 ? 'saida' : 'entrada';
                 const descricao = descKey ? r[descKey] : 'Sem descrição';
 
+                let parsedDate = r[dateKey];
+                if (parsedDate && parsedDate.includes('/')) {
+                    const parts = parsedDate.split('/');
+                    if (parts.length >= 3) {
+                        // Assuming DD/MM/YYYY
+                        const d = parts[0].padStart(2, '0');
+                        const m = parts[1].padStart(2, '0');
+                        const y = parts[2].substring(0, 4);
+                        parsedDate = `${y}-${m}-${d}`;
+                    }
+                }
+
                 return {
-                    data: r[dateKey], // Pode precisar normalizar data dependendo do CSV
+                    data: parsedDate,
                     descricao: descricao,
                     contato: this.extractContactFromDescription(descricao),
                     valor: Math.abs(valor).toFixed(2),
@@ -109,13 +121,29 @@ export class ImportacaoService {
     }
 
     private extractContactFromDescription(description: string): string | null {
+        if (!description) return null;
+
         // Exemplo: Transf Pix recebida - MARINES POVOA CORREA - 016.442.607-86
-        // Exemplo 2 (sem espacos): Transf Pix recebida -MARINES POVOA CORREA -016.442.607-86
         const pixRegex = /^Transf Pix recebida\s*-\s*(.+?)\s*-/;
-        const match = description.match(pixRegex);
+        let match = description.match(pixRegex);
         if (match && match[1]) {
             return match[1].trim().toUpperCase();
         }
+
+        // Tenta pegar PIX genérico (ex: Pix enviado - Fulano, Transferência Pix - Sicrano)
+        const pixRegex2 = /Pix[^\-]*-\s*(.+)/i;
+        match = description.match(pixRegex2);
+        if (match && match[1]) {
+            return match[1].split('-')[0].trim().toUpperCase();
+        }
+
+        // Tenta Transferência genérica
+        const transfRegex = /Transfer.ncia[^\-]*-\s*(.+)/i;
+        match = description.match(transfRegex);
+        if (match && match[1]) {
+            return match[1].split('-')[0].trim().toUpperCase();
+        }
+
         return null;
     }
 }

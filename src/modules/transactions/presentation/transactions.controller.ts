@@ -33,8 +33,23 @@ export class TransactionsController {
     }
 
     @Get('dashboard')
-    getDashboard(@Query('month') month?: number, @Query('year') year?: number) {
-        return this.transactionsService.getDashboardSummary(month, year);
+    getDashboard(
+        @Query('month') month?: number,
+        @Query('year') year?: number,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ) {
+        return this.transactionsService.getDashboardSummary(month, year, startDate, endDate);
+    }
+
+    @Get('summary/tags')
+    getTagsSummary(
+        @Query('month') month?: number,
+        @Query('year') year?: number,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ) {
+        return this.transactionsService.getTagSummary(month, year, startDate, endDate);
     }
 
     @Get(':id')
