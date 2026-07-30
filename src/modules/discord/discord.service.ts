@@ -24,7 +24,7 @@ export class DiscordService implements OnModuleInit {
             return;
         }
 
-        this.client.on('ready', () => {
+        this.client.on('clientReady', () => {
             this.logger.log(`Bot conectado como ${this.client.user?.tag}`);
         });
 

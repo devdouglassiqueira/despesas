@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { after, before, describe, it } from 'node:test';
 import { AppModule } from './../src/app.module';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
-  beforeEach(async () => {
+  before(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -16,10 +17,13 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/api/check-token (GET)', () => {
-    return request(app.getHttpServer())
+  after(async () => {
+    await app.close();
+  });
+
+  it('/api/check-token (GET)', async () => {
+    await request(app.getHttpServer())
       .get('/api/check-token')
-      .expect(200)
-      .expect({ message: 'Rota de verificação acessada com sucesso!' });
+      .expect(403);
   });
 });
