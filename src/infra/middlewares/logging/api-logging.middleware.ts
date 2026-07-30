@@ -2,6 +2,7 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { LogsService } from 'src/modules/logs/services/logs.service';
 import { randomUUID } from 'crypto';
+import { sanitizeLogData } from '../../../common/security/sanitize-log-data';
 
 @Injectable()
 export class ApiLoggingMiddleware implements NestMiddleware {
@@ -11,6 +12,7 @@ export class ApiLoggingMiddleware implements NestMiddleware {
     const start = Date.now();
     const requestId =
       (req.headers['x-request-id'] as string) || randomUUID().toString();
+    req.headers['x-request-id'] = requestId;
     res.setHeader('x-request-id', requestId);
 
     // save parts we need even if body/params change later
@@ -45,9 +47,9 @@ export class ApiLoggingMiddleware implements NestMiddleware {
           handler,
           ip,
           userAgent,
-          params: (req as any).params,
-          query: (req as any).query,
-          body: (req as any).body,
+          params: sanitizeLogData((req as any).params),
+          query: sanitizeLogData((req as any).query),
+          body: sanitizeLogData((req as any).body),
           errorName: errInfo?.name,
           errorMessage: errInfo?.message,
           stack: errInfo?.stack,

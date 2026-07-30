@@ -1,4 +1,15 @@
-import { IsOptional, IsString, IsEmail } from 'class-validator';
+import {
+  IsEmail,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -8,6 +19,7 @@ export class UpdateUserDto {
   })
   @IsString()
   @IsOptional()
+  @Length(2, 150)
   name?: string;
 
   @ApiProperty({
@@ -15,6 +27,7 @@ export class UpdateUserDto {
   })
   @IsString()
   @IsOptional()
+  @Length(3, 50)
   username?: string;
 
   @ApiProperty({
@@ -22,6 +35,7 @@ export class UpdateUserDto {
   })
   @IsEmail()
   @IsOptional()
+  @MaxLength(254)
   email?: string;
 
   @ApiProperty({
@@ -29,24 +43,29 @@ export class UpdateUserDto {
   })
   @IsString()
   @IsOptional()
+  @MinLength(8)
+  @MaxLength(128)
   password?: string;
 
   @ApiProperty({
     default: '23/09/1999',
   })
   @IsOptional()
+  @IsString()
   birthday?: string;
 
   @ApiProperty({
     default: 'active',
   })
   @IsOptional()
+  @IsIn(['active', 'inactive'])
   status?: string;
 
   @ApiProperty({
     default: 'http://avatar-url.com',
   })
   @IsOptional()
+  @IsUrl({ protocols: ['https'], require_protocol: true })
   avatarUrl?: string;
 
   @ApiProperty({
@@ -54,5 +73,7 @@ export class UpdateUserDto {
     description: 'Role Id',
   })
   @IsOptional()
-  roleId: number;
+  @IsInt()
+  @Min(1)
+  roleId?: number;
 }

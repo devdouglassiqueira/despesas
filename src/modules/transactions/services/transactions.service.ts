@@ -4,6 +4,8 @@ import { Repository, Not, IsNull, SelectQueryBuilder } from 'typeorm';
 import { Transaction } from '../domain/transaction.entity';
 import { CreateTransactionDto, UpdateTransactionDto } from '../domain/dto/create-transaction.dto';
 import { Attachment } from '../domain/attachment.entity';
+import { Account } from '../../accounts/domain/account.entity';
+import { parseOfxTransactions } from '../../../common/parsers/ofx-parser';
 
 @Injectable()
 export class TransactionsService {
@@ -12,14 +14,18 @@ export class TransactionsService {
         private transactionRepository: Repository<Transaction>,
         @InjectRepository(Attachment)
         private attachmentRepository: Repository<Attachment>,
+        @InjectRepository(Account)
+        private accountRepository: Repository<Account>,
     ) { }
 
-    async create(createTransactionDto: CreateTransactionDto) {
+    async create(createTransactionDto: CreateTransactionDto, userId?: number) {
         const { attachmentUrls, ...data } = createTransactionDto;
+        await this.assertAccountOwnership(data.accountId, userId);
 
         // If it's a simple transaction (no installments)
         if (!data.installmentTotal || data.installmentTotal <= 1) {
             const transaction = this.transactionRepository.create(data);
+            if (userId) transaction.userId = userId;
             if (data.categoryId) transaction.category = { id: data.categoryId } as any;
             if (data.accountId) transaction.account = { id: data.accountId } as any;
 
@@ -45,6 +51,7 @@ export class TransactionsService {
             };
 
             const transaction = this.transactionRepository.create(transactionData);
+            if (userId) transaction.userId = userId;
             if (data.categoryId) transaction.category = { id: data.categoryId } as any;
             if (data.accountId) transaction.account = { id: data.accountId } as any;
 
@@ -84,6 +91,16 @@ export class TransactionsService {
         }
     }
 
+    private async assertAccountOwnership(accountId?: number, userId?: number) {
+        if (!accountId || !userId) return;
+        const accountExists = await this.accountRepository.exists({
+            where: { id: accountId, userId },
+        });
+        if (!accountExists) {
+            throw new NotFoundException(`Account with ID ${accountId} not found`);
+        }
+    }
+
     private applyPeriodFilter(
         qb: SelectQueryBuilder<Transaction>,
         alias: string,
@@ -109,11 +126,12 @@ export class TransactionsService {
         }
     }
 
-    async findAll(query: any = {}) {
+    async findAll(query: any, userId: number) {
         const qb = this.transactionRepository.createQueryBuilder('transaction')
             .leftJoinAndSelect('transaction.category', 'category')
             .leftJoinAndSelect('transaction.account', 'account')
             .leftJoinAndSelect('transaction.attachments', 'attachments')
+            .where('transaction.user_id = :userId', { userId })
             .orderBy('transaction.date', 'DESC');
 
         if (query.month && query.year) {
@@ -137,8 +155,8 @@ export class TransactionsService {
             qb.andWhere('(transaction.description ILIKE :search OR transaction.tags ILIKE :search)', { search: `%${query.search}%` });
         }
 
-        const page = Number(query.page) || 1;
-        const limit = Number(query.limit) || 15;
+        const page = Math.max(1, Number(query.page) || 1);
+        const limit = Math.min(100, Math.max(1, Number(query.limit) || 15));
         const skip = (page - 1) * limit;
 
         const [data, total] = await qb
@@ -158,9 +176,9 @@ export class TransactionsService {
         };
     }
 
-    async findOne(id: number) {
+    async findOne(id: number, userId: number) {
         const transaction = await this.transactionRepository.findOne({
-            where: { id },
+            where: { id, userId },
             relations: ['category', 'account', 'attachments'],
         });
         if (!transaction) {
@@ -169,9 +187,10 @@ export class TransactionsService {
         return transaction;
     }
 
-    async update(id: number, updateTransactionDto: UpdateTransactionDto) {
-        const transaction = await this.findOne(id);
+    async update(id: number, updateTransactionDto: UpdateTransactionDto, userId: number) {
+        const transaction = await this.findOne(id, userId);
         const { attachmentUrls, ...data } = updateTransactionDto;
+        await this.assertAccountOwnership(data.accountId, userId);
 
         this.transactionRepository.merge(transaction, data);
 
@@ -186,18 +205,18 @@ export class TransactionsService {
         return this.transactionRepository.save(transaction);
     }
 
-    async remove(id: number) {
-        const transaction = await this.findOne(id);
+    async remove(id: number, userId: number) {
+        const transaction = await this.findOne(id, userId);
         return this.transactionRepository.remove(transaction);
     }
-    async getDashboardSummary(month?: number, year?: number, startDate?: string, endDate?: string) {
+    async getDashboardSummary(month?: number, year?: number, startDate?: string, endDate?: string, userId?: number) {
         const currentYear = Number(year) || new Date().getFullYear();
         const currentMonth = Number(month) || new Date().getMonth() + 1;
 
         const qbNormal = this.transactionRepository.createQueryBuilder('transaction')
             .leftJoinAndSelect('transaction.category', 'category')
             .leftJoinAndSelect('transaction.account', 'account')
-            .where('1 = 1');
+            .where('transaction.user_id = :userId', { userId });
 
         this.applyPeriodFilter(qbNormal, 'transaction', currentMonth, currentYear, startDate, endDate);
 
@@ -273,6 +292,7 @@ export class TransactionsService {
             .addSelect("t.type", "type")
             .addSelect("SUM(t.amount)", "total")
             .where('t.date >= :sixMonthsAgo', { sixMonthsAgo })
+            .andWhere('t.user_id = :userId', { userId })
             .groupBy("year")
             .addGroupBy("month")
             .addGroupBy("type")
@@ -322,10 +342,11 @@ export class TransactionsService {
         };
     }
 
-    async getTagSummary(month?: number, year?: number, startDate?: string, endDate?: string) {
+    async getTagSummary(month?: number, year?: number, startDate?: string, endDate?: string, userId?: number) {
         const qb = this.transactionRepository.createQueryBuilder('transaction')
             .leftJoinAndSelect('transaction.account', 'account')
             .where('transaction.type = :type', { type: 'expense' })
+            .andWhere('transaction.user_id = :userId', { userId })
             .orderBy('transaction.date', 'DESC');
 
         this.applyPeriodFilter(qb, 'transaction', month, year, startDate, endDate);
@@ -349,29 +370,15 @@ export class TransactionsService {
         return Array.from(tagMap.values()).sort((a, b) => b.total - a.total);
     }
 
-    async importTransactions(file: Express.Multer.File, accountId?: number) {
+    async importTransactions(file: Express.Multer.File, accountId?: number, userId?: number) {
+        await this.assertAccountOwnership(accountId, userId);
         if (!file) throw new NotFoundException('Arquivo não encontrado');
 
-        const fileContent = file.buffer.toString('utf8');
-        const ofx = require('node-ofx-parser');
-        let parsedData;
+        const transactionsData = parseOfxTransactions(file.buffer.toString('utf8'));
 
-        try {
-            parsedData = ofx.parse(fileContent);
-        } catch (e) {
-            throw new Error('Falha ao processar arquivo OFX.');
-        }
-
-        // Handle nested OFX structure
-        const stmtTrnRs = parsedData?.OFX?.BANKMSGSRSV1?.STMTTRNRS || parsedData?.OFX?.CREDITCARDMSGSRSV1?.CCSTMTTRNRS;
-        const stmtRs = stmtTrnRs?.STMTRS || stmtTrnRs?.CCSTMTRS;
-        const stmtTrn = stmtRs?.BANKTRANLIST?.STMTTRN;
-
-        if (!stmtTrn) {
+        if (!transactionsData.length) {
             throw new Error('Nenhuma transação encontrada no arquivo OFX');
         }
-
-        const transactionsData = Array.isArray(stmtTrn) ? stmtTrn : [stmtTrn];
 
         const transactionsToSave = transactionsData.map(trn => {
             const amount = parseFloat(trn.TRNAMT || '0');
@@ -390,6 +397,7 @@ export class TransactionsService {
                 date,
                 status: 'paid',
                 notes: `OFX ID: ${trn.FITID}`,
+                userId,
             });
 
             if (accountId) {
@@ -402,10 +410,10 @@ export class TransactionsService {
         return this.transactionRepository.save(transactionsToSave);
     }
 
-    async findUniqueTags() {
+    async findUniqueTags(userId: number) {
         const transactions = await this.transactionRepository.find({
             select: ['tags'],
-            where: { tags: Not(IsNull()) }
+            where: { tags: Not(IsNull()), userId }
         });
 
         const tagsSet = new Set<string>();

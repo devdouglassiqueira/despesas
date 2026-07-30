@@ -11,13 +11,20 @@ import { UserService } from '../users/services/users.service';
 import { DatabaseModule } from '../../infra/db/database.module';
 import { BcryptAdapter } from '../../infra/criptography/bcrypt-adapter/bcrypt-adapter';
 import { LogsModule } from '../logs/logs.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '24h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.getOrThrow<string>('jwt.secret'),
+        signOptions: {
+          expiresIn: configService.get('jwt.expiresIn') ?? '1h',
+        },
+      }),
     }),
     DatabaseModule,
     LogsModule,

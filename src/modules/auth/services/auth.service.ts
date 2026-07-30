@@ -8,6 +8,7 @@ import { Request } from 'express';
 import { LogsService } from 'src/modules/logs/services/logs.service';
 import { UserService } from '../../users/services/users.service';
 import { HashComparer } from 'src/common/interfaces/criptography/hash-comparer.interface';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,7 @@ export class AuthService {
 
   async auth(authDto: AuthDto, req?: Request) {
     const { email, password } = authDto;
-    const user = await this.userService.findByEmail(email);
+    const user = await this.userService.findByEmail(email.trim().toLowerCase());
     if (!user) {
       throw new HttpException('Email or password invalid', 403);
     }
@@ -110,10 +111,13 @@ export class AuthService {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    configService: ConfigService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: configService.getOrThrow<string>('jwt.secret'),
     });
   }
 

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { LogsService } from 'src/modules/logs/services/logs.service';
+import { sanitizeLogData } from '../../common/security/sanitize-log-data';
 
 @Catch(HttpException)
 export class HttpExceptionLoggingFilter implements ExceptionFilter {
@@ -50,9 +51,9 @@ export class HttpExceptionLoggingFilter implements ExceptionFilter {
           handler: (request as any)?._handler,
           ip,
           userAgent,
-          params: (request as any).params,
-          query: (request as any).query,
-          body: (request as any).body,
+          params: sanitizeLogData((request as any).params),
+          query: sanitizeLogData((request as any).query),
+          body: sanitizeLogData((request as any).body),
           errorName: exception?.name,
           errorMessage:
             (exception.getResponse?.() as any)?.message ??

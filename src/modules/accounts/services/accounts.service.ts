@@ -11,31 +11,31 @@ export class AccountsService {
         private accountRepository: Repository<Account>,
     ) { }
 
-    create(createAccountDto: CreateAccountDto) {
-        const account = this.accountRepository.create(createAccountDto);
+    create(createAccountDto: CreateAccountDto, userId: number) {
+        const account = this.accountRepository.create({ ...createAccountDto, userId });
         return this.accountRepository.save(account);
     }
 
-    findAll() {
-        return this.accountRepository.find({ order: { name: 'ASC' } });
+    findAll(userId: number) {
+        return this.accountRepository.find({ where: { userId }, order: { name: 'ASC' } });
     }
 
-    async findOne(id: number) {
-        const account = await this.accountRepository.findOne({ where: { id } });
+    async findOne(id: number, userId: number) {
+        const account = await this.accountRepository.findOne({ where: { id, userId } });
         if (!account) {
             throw new NotFoundException(`Account with ID ${id} not found`);
         }
         return account;
     }
 
-    async update(id: number, updateAccountDto: UpdateAccountDto) {
-        const account = await this.findOne(id);
+    async update(id: number, updateAccountDto: UpdateAccountDto, userId: number) {
+        const account = await this.findOne(id, userId);
         this.accountRepository.merge(account, updateAccountDto);
         return this.accountRepository.save(account);
     }
 
-    async remove(id: number) {
-        const account = await this.findOne(id);
+    async remove(id: number, userId: number) {
+        const account = await this.findOne(id, userId);
         return this.accountRepository.remove(account);
     }
 }

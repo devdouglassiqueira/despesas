@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -35,17 +35,35 @@ import { ControleDespesasModule } from './modules/controle-despesas/controle-des
 import { CategoriasModule } from './modules/categorias/categorias.module';
 import { ContatosModule } from './modules/contatos/contatos.module';
 import { DiscordModule } from './modules/discord/discord.module';
-import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1h' },
-    }),
     ConfigModule.forRoot({
+      isGlobal: true,
       load: [env],
     }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('jwt.secret');
+        if (!secret || secret.length < 32) {
+          throw new Error('JWT_SECRET deve possuir pelo menos 32 caracteres');
+        }
+        return {
+          secret,
+          signOptions: {
+            expiresIn: configService.get('jwt.expiresIn') ?? '1h',
+          },
+        };
+      },
+    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 100,
+      },
+    ]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, 'infra', 'modules', 'uploader', 'files'),
       serveRoot: '/files',
@@ -69,7 +87,6 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
     CategoriasModule,
     ContatosModule,
     DiscordModule,
-    WhatsappModule,
     // DespesasModule,
     // CategoriasModule,
   ],
@@ -78,6 +95,10 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
     {
       provide: APP_INTERCEPTOR,

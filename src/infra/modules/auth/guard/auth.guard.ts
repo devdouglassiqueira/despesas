@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
@@ -43,10 +44,14 @@ export class AuthGuard implements CanActivate {
         throw new ForbiddenException('Acesso negado: Header de Authorization ausente');
       }
 
-      const [, accessToken] = authHeader.split(' ');
+      const [scheme, accessToken] = authHeader.split(' ');
 
-      if (!accessToken || accessToken === 'undefined' || accessToken === null) {
-        throw new ForbiddenException('Acesso negado: Token ausente');
+      if (
+        scheme?.toLowerCase() !== 'bearer' ||
+        !accessToken ||
+        accessToken === 'undefined'
+      ) {
+        throw new UnauthorizedException('Token de acesso ausente ou inválido');
       }
 
       const decoded = await this.jwtService.verifyAsync(accessToken);
@@ -132,7 +137,13 @@ export class AuthGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      return false;
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
+      throw new UnauthorizedException('Token de acesso inválido ou expirado');
     }
   }
 }

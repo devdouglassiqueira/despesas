@@ -12,11 +12,19 @@ import {
 import { Category } from '../../categories/domain/category.entity';
 import { Account } from '../../accounts/domain/account.entity';
 import { Attachment } from './attachment.entity';
+import { Users } from '../../users/domain/users.entity';
 
 @Entity({ name: 'transactions' })
 export class Transaction {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @Column({ name: 'user_id', nullable: true })
+    userId: number;
+
+    @ManyToOne(() => Users, { onDelete: 'RESTRICT' })
+    @JoinColumn({ name: 'user_id' })
+    user: Users;
 
     @ApiProperty({ example: 'Compra no mercado', description: 'Descrição da transação' })
     @Column({ length: 255 })

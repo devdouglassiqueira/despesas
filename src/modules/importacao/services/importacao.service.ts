@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import * as ofx from 'node-ofx-parser';
 import { parse as csvParse } from 'csv-parse/sync';
+import { parseOfxTransactions } from '../../../common/parsers/ofx-parser';
 
 @Injectable()
 export class ImportacaoService {
@@ -22,8 +22,7 @@ export class ImportacaoService {
 
   private parseOfx(content: string) {
     try {
-      const data = ofx.parse(this.normalizeOfxContent(content));
-      const transactions = this.findTransactions(data);
+      const transactions = parseOfxTransactions(content);
 
       if (transactions.length === 0) {
         throw new BadRequestException(

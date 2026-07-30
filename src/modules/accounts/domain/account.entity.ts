@@ -6,13 +6,23 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
+    ManyToOne,
+    JoinColumn,
 } from 'typeorm';
 import { Transaction } from '../../transactions/domain/transaction.entity';
+import { Users } from '../../users/domain/users.entity';
 
 @Entity({ name: 'accounts' })
 export class Account {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @Column({ name: 'user_id', nullable: true })
+    userId: number;
+
+    @ManyToOne(() => Users, { onDelete: 'RESTRICT' })
+    @JoinColumn({ name: 'user_id' })
+    user: Users;
 
     @ApiProperty({ example: 'Carteira Principal', description: 'Nome da conta' })
     @Column({ length: 100 })
